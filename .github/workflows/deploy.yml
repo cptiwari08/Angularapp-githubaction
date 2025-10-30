@@ -37,12 +37,13 @@ jobs:
       - name: Zip Artifact for Deployment
         run: zip -r app.zip ./*
 
-      - name: Azure Login (federated)
+      - name: Azure Login
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.CLIENT_ID }}
           tenant-id: ${{ secrets.TENANT_ID }}
           subscription-id: ${{ secrets.SUBSCRIPTION_ID }}
+          creds: ${{ secrets.APP_REG_SECRETVALUE }}
 
 
       - name: Deploy to Azure Web App
