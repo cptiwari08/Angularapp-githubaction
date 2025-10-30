@@ -1,0 +1,101 @@
+name: Deploy React deploy pages
+# on: [push,workflow_dispatch]
+on:
+    push:
+      branches:
+        - main
+        - 'features/**'
+      paths-ignore:
+        - '.github/workflows/*'
+        -  README.md
+    workflow_dispatch:   
+jobs:
+    test:
+        runs-on: ubuntu-latest
+        steps:
+            - name: get code 
+              uses:  actions/checkout@v4
+
+                # echo "cloning repo.."
+                # echo "${{toJson(github)}}"
+                # git clone "https://github.com/${{github.repository}}.git"
+            - name: install node js  
+              uses: actions/setup-node@v4
+              with:
+                node-version: 20
+                check-latest: false
+            - name: cache dependencies
+              uses: actions/cache@v4
+              with:
+                path: ~/.npm
+                #ubuntu-latest-123456575757
+                key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}    
+            - name: node version 
+              run: node -v
+            - name: install dependencies
+            #   run: npm install
+              run: npm ci #npm install se zyada fast hota hai and latest update install krta hai ,automated environments 
+            - name: run test
+              run: npm run test
+    Build:
+        needs: test
+        runs-on: ubuntu-latest
+        steps:
+            - name: get code 
+              uses:  actions/checkout@v4
+
+                # echo "cloning repo.."
+                # echo "${{toJson(github)}}"
+                # git clone "https://github.com/${{github.repository}}.git"
+            - name: install node js  
+              uses: actions/setup-node@v4
+              with:
+                node-version: 20
+                check-latest: false
+            - name: cache dependencies
+              uses: actions/cache@v4
+              with:
+                path: ~/.npm
+                  #ubuntu-latest-123456575757
+                key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}                
+            - name: node version 
+              run: node -v
+            - name: install dependencies
+            #   run: npm install
+              run: npm ci #npm install se zyada fast hota hai and latest update install krta hai ,automated environments
+            - name: build project
+              run: npm run build 
+            - name: Upload Dist Artifact
+              uses: actions/upload-pages-artifact@v3
+              with:
+                  name: github-pages
+                  path: dist
+
+    Deploy: 
+        needs: Build
+        runs-on: ubuntu-latest
+        # steps:
+        #     - name: Download Dist Artifact
+        #       uses:  actions/download-artifact@v4
+        #       with:
+        #           name: Dist-artifact
+        #           path: dist
+        #     - name: Deploy
+
+        #       run: echo "deployment susccesfully" 
+                  # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+        permissions:
+          pages: write      # to deploy to Pages
+          id-token: write   # to verify the deployment originates from an appropriate source  
+           # Deploy to the github-pages environment
+        environment:
+            name: github-pages
+            url: ${{ steps.deployment.outputs.page_url }}
+        steps:
+            - name: Deploy to GitHub Pages
+              id: deployment
+              uses: actions/deploy-pages@v4 # or specific "vX.X.X" version tag for this action
+              with:
+                  token: ${{secrets.GITHUB_TOKEN}}            
+
+                       
