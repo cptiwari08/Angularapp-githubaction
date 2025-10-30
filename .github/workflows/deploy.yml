@@ -40,8 +40,8 @@ jobs:
       - name: Azure Login (federated)
         uses: azure/login@v2
         with:
-          client-id: ${{ fromJSON(secrets.AZURE_CREDENTIALS).CLIENT_ID }}
-          tenant-id: ${{ fromJSON(secrets.AZURE_CREDENTIALS).TENANT_ID }}
+          client-id: ${{ secrets.CLIENT_ID }}
+          tenant-id: ${{ secrets.TENANT_ID }}
           subscription-id: ${{ secrets.SUBSCRIPTION_ID }}
 
 
