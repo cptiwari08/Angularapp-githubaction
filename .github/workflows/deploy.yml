@@ -22,7 +22,8 @@ on:
 
 env:
   AZURE_WEBAPP_NAME: ${{ secrets.AZURE_WEBAPP_NAME }}
-  NODE_VERSION: ${{ secrets.NODE_VERSION }}
+  NODE_VERSION: '18.x'
+  # NODE_VERSION: ${{ secrets.NODE_VERSION }}
 
 jobs:
   build-and-deploy:
