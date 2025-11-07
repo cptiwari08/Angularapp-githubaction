@@ -4,7 +4,21 @@ on:
   push:
     branches:
       - main  # deploy whenever main branch is updated
+
   workflow_dispatch:
+    inputs:
+      BRANCH_NAME:
+        description: 'Branch to deploy from'
+        required: true
+        default: 'main'
+      # inputBuildNumber:
+      #   description: 'Build number to deploy'
+      #   required: false
+      # deployUsingLatestBuildArtifacts:
+      #   description: 'Deploy using latest build artifacts'
+      #   required: true
+      #   default: 'true'
+      #   type: boolean
 
 env:
   AZURE_WEBAPP_NAME: ${{ secrets.AZURE_WEBAPP_NAME }}
