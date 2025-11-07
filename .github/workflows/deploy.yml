@@ -5,12 +5,12 @@ on:
     branches:
       - main  # deploy whenever main branch is updated
 
-  workflow_dispatch:
-    inputs:
-      BRANCH_NAME:
-        description: 'Branch to deploy from'
-        required: true
-        default: 'main'
+  # workflow_dispatch:
+  #   inputs:
+  #     BRANCH_NAME:
+  #       description: 'Branch to deploy from'
+  #       required: true
+  #       default: 'main'
       # inputBuildNumber:
       #   description: 'Build number to deploy'
       #   required: false
