@@ -1,29 +1,84 @@
+# name: Build and Deploy Node App to Azure Web App
+
+# on:
+#   push:
+#     branches:
+#       - main  # deploy whenever main branch is updated
+
+#   # workflow_dispatch:
+#   #   inputs:
+#   #     BRANCH_NAME:
+#   #       description: 'Branch to deploy from'
+#   #       required: true
+#   #       default: 'main'
+#       # inputBuildNumber:
+#       #   description: 'Build number to deploy'
+#       #   required: false
+#       # deployUsingLatestBuildArtifacts:
+#       #   description: 'Deploy using latest build artifacts'
+#       #   required: true
+#       #   default: 'true'
+#       #   type: boolean
+
+# env:
+#   AZURE_WEBAPP_NAME: ${{ secrets.AZURE_WEBAPP_NAME }}
+#   NODE_VERSION: '20.x'
+#   # NODE_VERSION: ${{ secrets.NODE_VERSION }}
+
+# jobs:
+#   build-and-deploy:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: Checkout Code
+#         uses: actions/checkout@v4
+
+#       - name: Set up Node.js
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: ${{ env.NODE_VERSION }}
+
+#       - name: Install Dependencies
+#         run: npm install
+
+#       - name: Run Build (if needed)
+#         run: |
+#           if [ -f "package.json" ] && grep -q "\"build\"" package.json; then
+#             npm run build
+#           else
+#             echo "No build script found, skipping..."
+#           fi
+
+#       - name: Zip Artifact for Deployment
+#         run: zip -r app.zip ./*
+
+#       - name: Azure Login
+#         uses: azure/login@v2
+#         with:
+#         #   CLIENT_ID: ${{ secrets.CLIENT_ID }}
+#         #   TENANT_ID: ${{ secrets.TENANT_ID }}
+#         #   SUBSCRIPTION_ID: ${{ secrets.SUBSCRIPTION_ID }}
+#         #   APP_REG_SECRETVALUE: ${{ secrets.APP_REG_SECRETVALUE }}
+#           creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+
+#       - name: Deploy to Azure Web App
+#         uses: azure/webapps-deploy@v3
+#         with:
+#           app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+#           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+#           package: app.zip
+
 name: Build and Deploy Node App to Azure Web App
 
 on:
   push:
     branches:
-      - main  # deploy whenever main branch is updated
-
-  # workflow_dispatch:
-  #   inputs:
-  #     BRANCH_NAME:
-  #       description: 'Branch to deploy from'
-  #       required: true
-  #       default: 'main'
-      # inputBuildNumber:
-      #   description: 'Build number to deploy'
-      #   required: false
-      # deployUsingLatestBuildArtifacts:
-      #   description: 'Deploy using latest build artifacts'
-      #   required: true
-      #   default: 'true'
-      #   type: boolean
+      - main
 
 env:
   AZURE_WEBAPP_NAME: ${{ secrets.AZURE_WEBAPP_NAME }}
   NODE_VERSION: '20.x'
-  # NODE_VERSION: ${{ secrets.NODE_VERSION }}
 
 jobs:
   build-and-deploy:
@@ -39,28 +94,32 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: Install Dependencies
-        run: npm install
+        run: npm ci
 
-      - name: Run Build (if needed)
+      - name: Build production bundle
         run: |
           if [ -f "package.json" ] && grep -q "\"build\"" package.json; then
-            npm run build
+            npm run build --if-present -- --configuration production
           else
             echo "No build script found, skipping..."
           fi
 
-      - name: Zip Artifact for Deployment
-        run: zip -r app.zip ./*
+      - name: Package dist for deployment
+        run: |
+          # detect first folder under dist/ (Angular default: dist/<app-name>)
+          DIST_DIR=$(ls -1d dist/* 2>/dev/null | head -n1 || true)
+          if [ -z "$DIST_DIR" ]; then
+            echo "ERROR: dist folder not found. Available files:" && ls -la
+            exit 1
+          fi
+          echo "Packaging: $DIST_DIR"
+          cd "$DIST_DIR"
+          zip -r /github/workspace/app.zip ./*
 
       - name: Azure Login
         uses: azure/login@v2
         with:
-        #   CLIENT_ID: ${{ secrets.CLIENT_ID }}
-        #   TENANT_ID: ${{ secrets.TENANT_ID }}
-        #   SUBSCRIPTION_ID: ${{ secrets.SUBSCRIPTION_ID }}
-        #   APP_REG_SECRETVALUE: ${{ secrets.APP_REG_SECRETVALUE }}
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
